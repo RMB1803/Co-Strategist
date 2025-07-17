@@ -4,20 +4,16 @@ import pickle
 from sentence_transformers import SentenceTransformer
 from pathlib import Path
 
-# === Configuration ===
 USECASE_ID = "SC1_NetflixIndia"
 BASE_DIR = Path("data/usecases") / USECASE_ID
 OUTPUT_PATH = Path("embeddings/SC1_NetflixIndia_embeddings.pkl")
 SEGMENTED_FILES = ["market_trends.txt", "stakeholder_notes.txt"]
 UNSEGMENTED_FILES = {"case_description.txt": "CASE_DESCRIPTION"}
 
-# === Load SBERT Model ===
 model = SentenceTransformer('all-MiniLM-L6-v2') 
 
-# === Embedding Dictionary ===
 embedding_dict = {}
 
-# === Process Unsegmented Files ===
 for file_name, key in UNSEGMENTED_FILES.items():
     path = BASE_DIR / file_name
     if path.exists():
@@ -25,7 +21,6 @@ for file_name, key in UNSEGMENTED_FILES.items():
         embedding = model.encode(text.strip())
         embedding_dict[key] = embedding
 
-# === Process Segmented Files ===
 for file_name in SEGMENTED_FILES:
     path = BASE_DIR / file_name
     if not path.exists():
@@ -43,8 +38,7 @@ for file_name in SEGMENTED_FILES:
             embedding = model.encode(body.strip())
             embedding_dict[section] = embedding
 
-# === Save Output ===
 with open(OUTPUT_PATH, "wb") as f:
     pickle.dump(embedding_dict, f)
 
-print(f"✅ Embeddings saved to: {OUTPUT_PATH}")
+print(f"Embeddings saved to: {OUTPUT_PATH}")

@@ -1,18 +1,13 @@
-# Step 4: Strategy Agent (LLM-based) for low-VRAM GPU (GTX 1650)
-# Save as: /src/strategy_agent.py
-
 import json
 import pickle
 from pathlib import Path
 import torch
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 
-# === Config ===
 USECASE_ID = "SC1_NetflixIndia"
 DATA_DIR = Path("data/usecases") / USECASE_ID
 EMB_DIR = Path("embeddings")
 
-# === Load Inputs ===
 def load_text_embeddings():
     with open(EMB_DIR / f"{USECASE_ID}_embeddings.pkl", "rb") as f:
         return pickle.load(f)
@@ -29,7 +24,6 @@ def load_decision_framework():
     with open(DATA_DIR / "decision_framework.json") as f:
         return json.load(f)
 
-# === Prompt Builder ===
 def build_prompt(embeddings, kpis, meta, decision_info):
     quarter = list(kpis.keys())[-1]
     kpi_values = kpis[quarter]
@@ -56,7 +50,6 @@ Strategic Options:
 """
     return prompt
 
-# === Load Optimized LLM ===
 def load_llm():
     model_id = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
     tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -67,23 +60,22 @@ def load_llm():
     )
     return pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=400)
 
-# === Run Agent ===
 def main():
-    print("🚀 Loading inputs...")
+    print("Loading inputs...")
     text_embeds = load_text_embeddings()
     kpis = load_kpi_features()
     meta = load_meta_context()
     decision_info = load_decision_framework()
 
-    print("🧠 Building prompt...")
+    print("Building prompt...")
     prompt = build_prompt(text_embeds, kpis, meta, decision_info)
 
-    print("🤖 Running LLM (TinyLlama float16)...")
+    print("Running LLM (TinyLlama float16)...")
     llm = load_llm()
     full_output = llm(prompt)[0]['generated_text']
     trimmed_output = full_output[len(prompt):].strip()
 
-    print("\n📝 LLM Response Preview:\n" + "-"*40)
+    print("\nLLM Response Preview:\n" + "-"*40)
     print(trimmed_output[:800] + ("..." if len(trimmed_output) > 800 else ""))
     print("-" * 40)
 
@@ -95,7 +87,7 @@ def main():
             "response": trimmed_output
         }, f, indent=4)
 
-    print(f"✅ Output saved to: {output_path}")
+    print(f"Output saved to: {output_path}")
 
 if __name__ == "__main__":
     main()
